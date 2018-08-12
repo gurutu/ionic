@@ -1,14 +1,14 @@
 /**
  * Created by evfandroid on 7/21/2018.
  */
-var AppContoller = angular.module('StudentDashController', []);
+var AppContoller = angular.module('SubStudentDashController', []);
 
 AppContoller
   .controller(
-  "StudentDashController", ['$scope', '$mdSidenav', '$stateParams', 'studentService', 'logoutUser', 'utils',
-    'store', 'Util2', '$interval', '$ionicPopup','NativeTost','$rootScope',
+  "SubStudentDashController", ['$scope', '$mdSidenav', '$stateParams', 'studentService', 'logoutUser', 'utils',
+    'store', 'Util2', '$interval', '$ionicPopup','NativeTost',
     function ($scope, $mdSidenav, $stateParams, studentService, logoutUser, utils, store, Util2, $interval, 
-      $ionicPopup,NativeTost,$rootScope) {
+      $ionicPopup,NativeTost) {
 
       $scope.show = "";
       $scope.studentData = "";
@@ -24,8 +24,6 @@ AppContoller
       $scope.currentDateTime = new Date();
       $scope.coundownValue = "";
       var interval;
-      var voice;
-      var myVideo;
 
 
 
@@ -33,14 +31,6 @@ AppContoller
         logoutUser.userLogout();
       }
 
-      $scope.stopVideoVoice=function(){
-        try {
-          myVideo.pause();
-        voice.pause();
-        } catch (error) {
-        }
-        
-      }
 
       var request = {
         "id": $stateParams.studentId
@@ -68,8 +58,6 @@ AppContoller
         }
         studentService.getUniqueSubjects(requestFilter).then(function (result) {
           $scope.studentTaskData = result.data;
-          if(result.data.length==undefined)
-          NativeTost.showTost('Please Select Date','long','top');
         })
 
         $scope.show = true;
@@ -103,7 +91,6 @@ AppContoller
       };
 
       $scope.cancel = function () {
-        $scope.stopVideoVoice();
         $mdSidenav('rightMain').close()
           .then(function () {
           });
@@ -112,11 +99,10 @@ AppContoller
       $scope.saveTaskStatus = function (status, id, sDate, eDate) {
         if (status == 'completed') {
           eDate = new Date();
-          $scope.stopVideoVoice();
         }
         var requestSta = {
           "status": status,
-          "id": $rootScope.saveTaskId,
+          "id": id,
           "taskStartTime": sDate,
           "taskEndTime": eDate
         }
@@ -139,14 +125,10 @@ AppContoller
         studentService.getTaskDetailById(requeatTaskId).then(function (result) {
           $scope.singleTaskData = result.data[0];
           $scope.getTheInterval($scope.singleTaskData.endDate);
-          if($scope.singleTaskData.voiceNoteUrl!=null){
-            voice=document.getElementsByTagName('audio')[1];
-            voice.src=$scope.singleTaskData.voiceNoteUrl;
-            voice.load();
-          }
+          // $scope.singleTaskData.linkUrl='http://kmmc.in/wp-content/uploads/2014/01/lesson2.pdf';
           if ($scope.singleTaskData.linkUrl != null) {
             $scope.fileShow = utils.findfileExtention($scope.singleTaskData.linkUrl);
-             
+            var myVideo = "";
             if ($scope.fileShow == 'video') {
               myVideo = document.getElementsByTagName('video')[0];
             } else if ($scope.fileShow == 'audio') {
@@ -158,9 +140,8 @@ AppContoller
             }
             if ($scope.fileShow != 'image' && $scope.fileShow != 'pdf') {
               myVideo.src = $scope.singleTaskData.linkUrl;
-             
               myVideo.load();
-             // myVideo.play();
+              myVideo.play();
             }
 
           }
@@ -170,7 +151,7 @@ AppContoller
       // Timer value Add By Pranav 
       $scope.getTheInterval = function (endDate) {
         $scope.flagFirst=" ";
-        var future = new Date(endDate);
+        var future = new Date('08/11/2018 09:42 PM');
         if(future.getTime()>new Date().getTime()){
         interval = $interval(function () {
           var diff = Math.floor(future.getTime() - new Date().getTime()) / 1000;
@@ -213,7 +194,6 @@ AppContoller
 
         confirmPopup.then(function (res) {
           if (res) {
-            $rootScope.saveTaskId=task.id;
             $scope.isOpenRight();
             $scope.getTaskDetail(task.taskCode);
             $scope.saveTaskStatus(status, task.id, $scope.currentDateTime, $scope.currentDateTime);
@@ -242,7 +222,6 @@ $scope.showPopupFinish = function() {
   });
   alertPopup.then(function(res) {
     $scope.cancel();
-    $scope.saveTaskStatus('completed',$scope.singleTaskData.id,$scope.taskStartTime,$scope.currentDateTime);
     console.log('Thank you for not eating my delicious ice cream cone');
   });
 };
